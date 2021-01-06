@@ -47,6 +47,8 @@ object ShoppingCart {
 
   final case class Get(replyTo: ActorRef[Summary]) extends Command
 
+  final case class DoNothing(replyTo:ActorRef[Summary]) extends Command
+
   // SHOPPING CART REPLIES
   final case class Summary(items: Map[String, Int], checkedOut: Boolean)
 
@@ -146,6 +148,7 @@ final case class ShoppingCart(items: Map[String, Int], checkedOutTime: Option[In
         case AdjustItemQuantity(itemId, quantity, replyTo) => onAdjustItemQuantity(itemId, quantity, replyTo)
         case Checkout(replyTo)                             => onCheckout(replyTo)
         case Get(replyTo)                                  => onGet(replyTo)
+        case DoNothing(replyTo)                            => onDoNothing(replyTo)
       }
     } else {
       cmd match {
@@ -154,6 +157,7 @@ final case class ShoppingCart(items: Map[String, Int], checkedOutTime: Option[In
         case RemoveItem(_, replyTo)            => reply(replyTo)(Rejected("Cannot remove an item from a checked-out cart"))
         case AdjustItemQuantity(_, _, replyTo) => reply(replyTo)(Rejected("Cannot adjust item on a checked-out cart"))
         case Checkout(replyTo)                 => reply(replyTo)(Rejected("Cannot checkout a checked-out cart"))
+      case DoNothing(replyTo)                  => onDoNothing(replyTo)
       }
     }
 
@@ -207,6 +211,12 @@ final case class ShoppingCart(items: Map[String, Int], checkedOutTime: Option[In
 
   private def onGet(replyTo: ActorRef[Summary]): ReplyEffect[Event, ShoppingCart] = {
     reply(replyTo)(toSummary(this))
+  }
+
+  private def onDoNothing(replyTo: ActorRef[Summary]): ReplyEffect[Event, ShoppingCart] = {
+    val s = new java.util.HashMap[Long, String](100000)
+    (0L until 100000L).map(i => s.put(i, i.toString))
+    Effect.none.thenReply(replyTo)(_ => toSummary(this))
   }
 
   private def toSummary(shoppingCart: ShoppingCart): Summary =

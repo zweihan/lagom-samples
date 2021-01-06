@@ -1,14 +1,12 @@
 package com.example.shoppingcart.impl
 
-import akka.NotUsed
+import akka.{Done, NotUsed}
 import com.example.shoppingcart.api.ShoppingCartView
 import com.example.shoppingcart.api.ShoppingCartItem
 import com.example.shoppingcart.api.Quantity
 import com.example.shoppingcart.api.ShoppingCartReport
 import com.example.shoppingcart.api.ShoppingCartService
-
 import com.example.shoppingcart.impl.ShoppingCart._
-
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.api.broker.Topic
 import com.lightbend.lagom.scaladsl.api.transport.BadRequest
@@ -17,11 +15,13 @@ import com.lightbend.lagom.scaladsl.broker.TopicProducer
 import com.lightbend.lagom.scaladsl.persistence.EventStreamElement
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntityRegistry
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import akka.cluster.sharding.typed.scaladsl.ClusterSharding
+
 import scala.concurrent.duration._
 import akka.util.Timeout
 import akka.cluster.sharding.typed.scaladsl.EntityRef
+import com.lightbend.lagom.scaladsl.server.ServerServiceCall
 
 /**
  * Implementation of the `ShoppingCartService`.
@@ -111,5 +111,12 @@ class ShoppingCartServiceImpl(
       case Some(cart) => cart
       case None       => throw NotFound(s"Couldn't find a shopping cart report for $cartId")
     }
+  }
+
+  override def testStackoverflow(): ServiceCall[NotUsed, Done] = ServerServiceCall { _ =>
+    while(true) {
+      entityRef("some id").ask(DoNothing)
+    }
+    Future.successful(Done)
   }
 }

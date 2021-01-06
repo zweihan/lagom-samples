@@ -68,6 +68,8 @@ trait ShoppingCartService extends Service {
    */
   def checkout(id: String): ServiceCall[NotUsed, ShoppingCartView]
 
+  def testStackoverflow(): ServiceCall[NotUsed, Done]
+
   /**
    * This gets published to Kafka.
    */
@@ -83,7 +85,8 @@ trait ShoppingCartService extends Service {
         restCall(Method.POST, "/shoppingcart/:id", addItem _),
         restCall(Method.DELETE, "/shoppingcart/:id/item/:itemId", removeItem _),
         restCall(Method.PATCH, "/shoppingcart/:id/item/:itemId", adjustItemQuantity _),
-        restCall(Method.POST, "/shoppingcart/:id/checkout", checkout _)
+        restCall(Method.POST, "/shoppingcart/:id/checkout", checkout _),
+        restCall(Method.GET, "/shoppingcart/test", testStackoverflow _)
       )
       .withTopics(
         topic(ShoppingCartService.TOPIC_NAME, shoppingCartTopic)
